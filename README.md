@@ -1,84 +1,75 @@
-# ElementsTimeTester Application
+# Elements Time Tester
 
-## Quick Description
+A Java command-line application to explore common collection operations and how to instrument execution time. This project includes **4 collection types**, **7 generated data types**, **4 test modes** and two output formats.
 
-The ElementsTimeTester is a console-app-based system developed using Java. It allows users to search, add, romove elements and test their speed on different amount.
+> **Important:** the current implementation has known benchmark-methodology errors. Its time readings are **not reliable evidence that one Java collection is faster than another**. See [Tests and limitations](#tests-and-numerical-results).
 
----
+## Supported configuration
 
-## Table of Contents
+| Dimension | Available options |
+|---|---|
+| Collections | `ArrayList`, `LinkedList`, `HashSet`, `TreeSet` |
+| Generated data | Integer, Double, Person, MyColor, Animal, Food, Car |
+| Operations | ADD, SEARCH (`contains`), REMOVE (`removeAll`), ALL_OPERATIONS |
+| Dataset sizes | 100, 500, 1,000, 10,000 or custom |
+| Output | Console or CSV (`Results.csv`) |
 
-- [Prerequisites](#prerequisites)
-- [Installation Guide](#installation-guide)
-- [Configuration](#configuration)
-- [Running the Project](#running-the-project)
-- [Directory Structure](#directory-structure)
-- [Contribution Guidelines](#contribution-guidelines)
-- [Branch Naming Conventions and Commit Message Guidelines](#branch-naming-conventions-and-commit-message-guidelines)
+Data generation uses Java Streams. The program selects a generator, collection and presenter, then measures operations using `System.nanoTime()`.
 
-_Use [github-markdown-toc](https://github.com/ekalinin/github-markdown-toc) to automatically generate the Table of Contents._
+The TreeSet is constructed with a comparator based on `hashCode`; this is **not** a substitute for a domain-specific ordering, and hash collisions can affect its comparison semantics.
 
----
+## Implementation choices
 
-## Prerequisites
+- Enums represent user-configurable data types, collections, test modes and output formats.
+- A generic `DataGenerator` abstraction creates data for the selected type.
+- `GenericTester` executes the requested operation and collects timing values.
+- `ConsolePresenter` and `CSVPresenter` separate display from measurement logic.
+- `TestResult` stores measured values.
 
-Ensure the following tools and software are installed on your machine before setting up the project:
+All implementation is currently in [`src/S30436Project01.java`](src/S30436Project01.java). The original assignment specification is in [`Description.md`](Description.md).
 
-- [Java language](https://www.java.com/ru/download/) (v23.0.1) or higher
-- [Java Development Kit](https://www.oracle.com/java/technologies/downloads/) (24.0.1) or higher
----
+## Build and run
 
-# Installation Guide
+Tested with **OpenJDK 21** (a JDK is needed, not just a Java runtime).
 
-Follow these steps to set up the project locally:
-
-1. Clone the repository:
-
-  if use http 
-Bash
+```bash
+git clone https://github.com/KazimirMaliewich/ElementsTimeTester.git
+cd ElementsTimeTester
+mkdir -p out
+javac -d out src/S30436Project01.java
+java -cp out S30436Project01
 ```
 
-   git clone https://github.com/KazimirMaliewich/ElementsTimeTester.git
-   cd ElementsTimeTester
-   ```
-  if use ssh
-Bash
-```
-    git clone git@github.com:KazimirMaliewich/ElementsTimeTester.git
-    cd ElementsTimeTester
-```
+The interactive prompts request the data type, collection, output format, test mode and dataset size. For example, entering `1`, `1`, `1`, `1`, `1` selects **Integer / ArrayList / Console / ADD / 100 elements**.
 
-5. Start the app:
+## Tests and numerical results
 
-1. Open your project in any code editor you use which supports jdk (VS Code, IntelIJ etc.)
-2. Open src directory and then right click Main.java file and click Run
+A separate audit ran **18 scenarios** against the unmodified source code on **12 November 2026** (OpenJDK 21):
 
-# Testing
+| Outcome | Count |
+|---|---:|
+| Passing scenarios | **11** |
+| Failing scenarios | **7** |
+| Total scenarios | **18** |
 
-On your console you'll see text which will ask you for a choice. You can choose one option at a time by inserting numbers.
+Passing cases included basic ADD and ALL_OPERATIONS execution across all **4 collection types**, single-operation CSV output, unsupported collection option handling and the all-operations cleanup state.
 
-# Directory Structure
+Failing cases included zero/negative/non-numeric input handling, CSV format for ALL_OPERATIONS, unpopulated SEARCH and REMOVE workloads, and the incorrect order of search and removal. See the complete scenario table in [docs/TESTING.md](docs/TESTING.md).
 
-A brief explanation of the most important folders in the project:
-```
-ElementsTimeTester/
-│
-├── src/                   # Source code for the application
-    ├── Main.java          # Main file with all classes included
+### Why no speed-up percentages are reported
 
-```
+The current code runs SEARCH and REMOVE against empty collections in their standalone modes. In ALL_OPERATIONS it runs `ADD -> REMOVE -> SEARCH`, so the search happens **after** data is removed. Two timing fields are also swapped when constructing the result, and the CSV header can have fewer fields than the data rows.
 
-## Branch Naming Convention:
+These are reproducible correctness and methodology issues; numbers produced by this implementation should not be treated as scientifically meaningful benchmark comparisons.
 
-- Use the following naming convention for branches:
-  - feature/<short-description>: For new features
-  - bugfix/<short-description>: For bug fixes
-  - hotfix/<short-description>: For urgent fixes
+## Planned improvements (not yet implemented)
 
-Examples:
+1. Populate the collection before SEARCH/REMOVE tests; use equivalent starting states across collection types.
+2. Perform searches before removal and fix the swapped timing fields.
+3. Validate custom dataset sizes and the numeric input prompts.
+4. Ensure CSV header and row fields match for every test mode.
+5. Repeat comparable measurements after JVM warm-up, or use JMH; report Java version, dataset sizes, repetitions and median timing.
 
-Bash
-```
-feature/add-user-authentication
-bugfix/fix-login-issue
-```
+## Project scope
+
+This project demonstrates Java collections, basic generics, abstraction through interfaces, CLI configuration and timing instrumentation. It is a learning project, and its documented limitations are part of the engineering follow-up.
