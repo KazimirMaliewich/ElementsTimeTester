@@ -54,7 +54,7 @@ A separate audit ran **18 scenarios** against the unmodified source code on **12
 
 Passing cases included basic ADD and ALL_OPERATIONS execution across all **4 collection types**, single-operation CSV output, unsupported collection option handling and the all-operations cleanup state.
 
-Failing cases included zero/negative/non-numeric input handling, CSV format for ALL_OPERATIONS, unpopulated SEARCH and REMOVE workloads, and the incorrect order of search and removal. See the complete scenario table in [docs/TESTING.md](docs/TESTING.md).
+Failing cases included zero/negative/non-numeric input handling, CSV format for ALL_OPERATIONS, unpopulated SEARCH and REMOVE workloads, and the incorrect order of search and removal. See the complete scenario table in [docs/TESTING.md](TESTING.md).
 
 ### Why no speed-up percentages are reported
 
